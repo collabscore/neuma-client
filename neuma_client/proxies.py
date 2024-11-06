@@ -17,7 +17,6 @@ class Collections:
 		try:
 			client.request ("NeumaApi_v3")
 			logger.info (f"Connection OK to {client.url()}")
-			print (f"Connection OK to {client.url()}")
 		except Exception as ex :
 			logger.error (f"Unable to connect to {client.url()}: {ex}")
 
@@ -115,6 +114,8 @@ class Source:
 		
 		self.manifest = None
 		self.manifest_in_cache = False
+		self.editions = []
+		self.editions_in_cache = False
 		
 		
 	def file_url(self):
@@ -140,6 +141,26 @@ class Source:
 			self.manifest_in_cache = True
 		return Manifest(self.manifest)
 
+	"""
+	  Editions
+	"""
+	def get_editions(self):
+		if  not (self.editions_in_cache):
+			editions_json  = self.client.request ("SourceEditionsGet", 
+											full_neuma_ref=self.opus.ref,
+											source_ref=self.ref)
+			for edition_json in editions_json:
+				self.editions.append(Edition (edition_json))
+				
+			self.editions_in_cache =  True
+		return self.editions
+	
+	def post_editions(self, editions):
+		resp = self.client.login("rigaux", "Fuf3a3wu!")
+		self.client.request ("SourceEditionsPost", 
+							full_neuma_ref=self.opus.ref,
+							source_ref=self.ref,
+							editions=[])
 
 class Manifest:
 	# Description of an IIIF source
@@ -206,4 +227,19 @@ class Manifest:
 		if i_measure >= len(system["measures"]):
 			raise Exception (f"Attempt to read beyond the number of measures in system {i_system}")
 		return system["measures"][i_measure]
+			
+
+class Edition:
+	# An object that encapsulates an edition
+	
+	def __init__(self, edition_dict):	
+		# The manifest dictionary, obtained from the REST call
+		self.name = edition_dict["name"]
+		self.params = edition_dict["params"]
+	
+	def get_param(self, param_name):
+		if param_name in self.params["values"].keys():
+			return self.params["values"][param_name]
+		else:
+			raise Exception (f"Attempt to get an edition parameter that does not exist: {param_name} (edition name: {self.name})")
 			

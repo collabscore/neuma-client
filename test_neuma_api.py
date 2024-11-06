@@ -3,10 +3,13 @@ import sys, os
 import argparse
 import json
 from pathlib import Path
+import requests
+
+from requests.auth import HTTPBasicAuth
 
 from neuma_client.client import NeumaClient
 
-from neuma_client.proxies import Collections, Corpus, Opus, Source, Manifest
+from neuma_client.proxies import Collections, Corpus, Opus, Source, Manifest, Edition
 
 def main(argv=None):
 	"""
@@ -20,16 +23,37 @@ def main(argv=None):
 	args = parser.parse_args()
 	
 	print (f"Base URL for Neuma services : {args.base_url}")
-	
+	"""opus = "all%3Acollabscore%3Asaintsaens-ref%3AC006_0"
+	u = f"{args.base_url}/rest/collections/{opus}/_sources/iiif/_editions/"
+	data = []
+	ret = requests.post(u, auth = HTTPBasicAuth('rigaux', 'Fuf3a3wu!'), json=data)
+
+	"""
 	client = NeumaClient (None, auth_scheme="Token", base_url=args.base_url)
 	
 	# Test the welcome message
 	res = client.request ("NeumaApi_v3")
-	print (f"Welcome service -- {res['message']}")
+	#print (f"Welcome service -- {res['message']}")
 		
 	res = client.request ("Element", full_neuma_ref= "all:collabscore:saintsaens-ref")
-	print (f"Recherche d'un corpus -- {res['title']}\n")
+	#print (f"Recherche d'un corpus -- {res['title']}\n")
 
+	res = client.request ("Element", full_neuma_ref= "all:collabscore:saintsaens-ref:C006_0")
+	#print (f"Recherche d'un opus -- {res['title']}")
+
+	opus = Opus (client, res)
+	iiif = opus.get_source(Source.IIIF_REF)
+	print (f"Recherche d'une source -- {iiif.ref}, {iiif.url}")
+
+	editions = iiif.get_editions()
+	for ed in editions:
+		print (f"\tEditions sur la source -- {iiif.ref}:  {ed.name}")
+		if ed.name == "describe_part":
+			print (f"\t\tValeur du parametre 'name' :  {ed.get_param('name')}")
+			
+	iiif.post_editions([])
+	
+	return
 	"""
 	    Test with proxies
 	"""
@@ -60,7 +84,7 @@ def main(argv=None):
 						measure = manifest.get_measure(i, j, k)
 						print (f"\t\t\t\t\tMeasure {measure['number_in_system']}. Region {measure['region']}")
 						
-		#break
+		break
 	
 if __name__ == "__main__":
 	main()

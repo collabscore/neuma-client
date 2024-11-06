@@ -12,6 +12,10 @@ import apistar
 import requests
 import yaml
 
+from apistar.client.auth import SessionAuthentication, TokenAuthentication
+
+from requests.auth import HTTPBasicAuth
+
 #from auth import TokenSessionAuthentication
 from neuma_client.exceptions import NotFoundException
 #from pagination import ResponsePaginator
@@ -138,6 +142,7 @@ class NeumaClient(apistar.Client):
 				f"Could not retrieve a proper OpenAPI schema from {schema_url}"
 			) from e
 
+
 		super().__init__(schema, **kwargs)
 
 		# APIStar will treat a schema as valid even when there are no endpoints, making the client completely useless.
@@ -223,15 +228,14 @@ class NeumaClient(apistar.Client):
 		   as a simple means of throttling.
 		"""
 		
-		'''
 		if not csrf_cookie:
 			csrf_cookie = "neuma.csrf"
-			self.transport.session.auth = TokenSessionAuthentication(
+			
+		self.transport.session.auth = TokenAuthentication(
 			token,
-			csrf_cookie_name=csrf_cookie,
 			scheme=auth_scheme,
 		)
-		''' 
+		 
 		if not sleep or not isinstance(sleep, float) or sleep < 0:
 			self.sleep_duration = 0
 		self.sleep_duration = sleep
@@ -261,15 +265,18 @@ class NeumaClient(apistar.Client):
 			return ResponsePaginator(self, operation_id, *args, **kwargs)
 		return self.request(operation_id, *args, **kwargs)
 
-	def login(self, email, password):
+	def login(self, username, password):
 		"""
 		Login to Neuma using an email/password combination.
 		This helper method automatically sets the client's authentication settings with the token.
 		"""
-		resp = self.request("Login", body={"email": email, "password": password})
-		if "auth_token" in resp:
-			self.transport.session.auth.scheme = "Token"
-			self.transport.session.auth.token = resp["auth_token"]
+		resp = self.request("Login", authtoken={"username":username, "password":password})
+		if "token" in resp:
+			self.transport.session.auth = HTTPBasicAuth(username, password)
+			
+			# The token method does not work. Maybe an issue with HTTPS or the Django server
+			#self.transport.session.auth.scheme = "Token"
+			#self.transport.session.auth.token = resp["token"]
 		return resp
 
 	def request(self, operation_id, *args, **kwargs):
