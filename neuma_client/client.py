@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Arkindex API Client
+Neuma API Client
 """
 import logging
 import os
@@ -16,13 +16,10 @@ from apistar.client.auth import SessionAuthentication, TokenAuthentication
 
 from requests.auth import HTTPBasicAuth
 
-#from auth import TokenSessionAuthentication
 from neuma_client.exceptions import NotFoundException
 #from pagination import ResponsePaginator
-#from transports import ArkindexHTTPTransport
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 DEFAULT_BASE_URL = "https://neuma.huma-num.fr/"
 
 # Endpoint accessed by the client on instantiation to retrieve the OpenAPI schema
@@ -56,29 +53,17 @@ def options_from_env():
 	Get API client keyword arguments from environment variables.
 	"""
 	options = {}
-	# ARKINDEX_TASK_TOKEN takes priority over ARKINDEX_API_TOKEN
-	if "ARKINDEX_TASK_TOKEN" in os.environ:
-		options["auth_scheme"] = "Ponos"
-		options["token"] = os.environ.get("ARKINDEX_TASK_TOKEN")
-	elif "ARKINDEX_API_TOKEN" in os.environ:
-		options["auth_scheme"] = "Token"
-		options["token"] = os.environ.get("ARKINDEX_API_TOKEN")
 
-	# Allow overriding the default auth schemes
-	if "ARKINDEX_API_AUTH_SCHEME" in os.environ:
-		options["auth_scheme"] = os.environ.get("ARKINDEX_API_AUTH_SCHEME")
+	if "NEUMA_API_URL" in os.environ:
+		options["base_url"] = os.environ.get("NEUMA_API_URL")
 
-	if "ARKINDEX_API_URL" in os.environ:
-		options["base_url"] = os.environ.get("ARKINDEX_API_URL")
+	if "NEUMA_API_SCHEMA_URL" in os.environ:
+		options["schema_url"] = os.environ.get("NEUMA_API_SCHEMA_URL")
 
-	if "ARKINDEX_API_SCHEMA_URL" in os.environ:
-		options["schema_url"] = os.environ.get("ARKINDEX_API_SCHEMA_URL")
-
-	if "ARKINDEX_API_CSRF_COOKIE" in os.environ:
-		options["csrf_cookie"] = os.environ.get("ARKINDEX_API_CSRF_COOKIE")
+	if "NEUMA_API_CSRF_COOKIE" in os.environ:
+		options["csrf_cookie"] = os.environ.get("NEUMA_API_CSRF_COOKIE")
 
 	return options
-
 
 def _find_operation(schema, operation_id):
 	for path_object in schema["paths"].values():
@@ -86,7 +71,6 @@ def _find_operation(schema, operation_id):
 			if operation["operationId"] == operation_id:
 				return operation
 	raise KeyError("Operation '{}' not found".format(operation_id))
-
 
 def _find_param(operation, param_name):
 	for parameter in operation.get("parameters", []):
@@ -97,7 +81,7 @@ def _find_param(operation, param_name):
 
 class NeumaClient(apistar.Client):
 	"""
-	A Neuma API client.
+	Neuma API client.
 	"""
 
 	def __init__(

@@ -4,7 +4,6 @@
 """
 
 from neuma_client.exceptions import NotFoundException
-
 from neuma_client.client import NeumaClient, logger
 
 class Collections:
@@ -156,12 +155,11 @@ class Source:
 		return self.editions
 	
 	def post_editions(self, editions):
-		resp = self.client.login("rigaux", "Fuf3a3wu!")
-		self.client.request ("SourceEditionsPost", 
+		return self.client.request ("SourceEditionsPost", 
 							full_neuma_ref=self.opus.ref,
 							source_ref=self.ref,
-							editions=[])
-
+							editions=editions)
+		
 class Manifest:
 	# Description of an IIIF source
 	
@@ -238,8 +236,7 @@ class Edition:
 		self.params = edition_dict["params"]
 	
 	def get_param(self, param_name):
-		if param_name in self.params["values"].keys():
-			return self.params["values"][param_name]
+		if param_name in self.params.keys():
+			return self.params[param_name]
 		else:
-			raise Exception (f"Attempt to get an edition parameter that does not exist: {param_name} (edition name: {self.name})")
-			
+			return None

@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import requests
 
+import environ
+
 from requests.auth import HTTPBasicAuth
 
 from neuma_client.client import NeumaClient
@@ -22,15 +24,19 @@ def main(argv=None):
                    help='URL of Neuma services', default="http://neuma.huma-num.fr")
 	args = parser.parse_args()
 	
-	print (f"Base URL for Neuma services : {args.base_url}")
-	"""opus = "all%3Acollabscore%3Asaintsaens-ref%3AC006_0"
-	u = f"{args.base_url}/rest/collections/{opus}/_sources/iiif/_editions/"
-	data = []
-	ret = requests.post(u, auth = HTTPBasicAuth('rigaux', 'Fuf3a3wu!'), json=data)
-
-	"""
-	client = NeumaClient (None, auth_scheme="Token", base_url=args.base_url)
+	# On prend le compte et le mot de passe REST Neuma dans des variables d'environnement
+	env = environ.Env(	# set casting, default value
+    	NEUMA_REST_USER=(str, "annymous"),
+    	NEUMA_REST_PASSWORD=(str, ""),
+		)
 	
+	print (f"Base URL for Neuma services : {args.base_url}")
+
+	print (f"User: {env('NEUMA_REST_USER')}")
+	
+	client = NeumaClient (None, auth_scheme="Token", base_url=args.base_url)
+	resp_login = client.login(env('NEUMA_REST_USER'), env('NEUMA_REST_PASSWORD'))
+
 	# Test the welcome message
 	res = client.request ("NeumaApi_v3")
 	#print (f"Welcome service -- {res['message']}")
@@ -49,11 +55,11 @@ def main(argv=None):
 	for ed in editions:
 		print (f"\tEditions sur la source -- {iiif.ref}:  {ed.name}")
 		if ed.name == "describe_part":
-			print (f"\t\tValeur du parametre 'name' :  {ed.get_param('name')}")
+			print (f"\t\tValeur du parametre 'part' :  {ed.get_param('part')}")
 			
-	iiif.post_editions([])
-	
-	return
+	resp = iiif.post_editions([{"name": "describe_part", "params": {}}])
+	print (f"\t\tResult of post edition: {resp}")
+
 	"""
 	    Test with proxies
 	"""
@@ -79,12 +85,7 @@ def main(argv=None):
 					system = manifest.get_system(i,j)
 					print (f"\t\t\t\tSystem {j+1} : Nb staves: {manifest.nb_staves(i,j)}")
 					print (f"\t\t\t\tSystem {j+1} : Region: {manifest.system_region(i,j)}")
-					print (f"\t\t\t\tSystem {j+1} : Nb measures: {manifest.nb_measures(i,j)}")
-					for k in range (manifest.nb_measures(i, j)):
-						measure = manifest.get_measure(i, j, k)
-						print (f"\t\t\t\t\tMeasure {measure['number_in_system']}. Region {measure['region']}")
-						
-		break
+					print (f"\t\t\t\tSystem {j+1} : Nb measures: {manifest.nb_measures(i,j)}")						
 	
 if __name__ == "__main__":
 	main()
