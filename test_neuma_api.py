@@ -35,7 +35,7 @@ def main(argv=None):
 	print (f"User: {env('NEUMA_REST_USER')}")
 	
 	client = NeumaClient (None, auth_scheme="Token", base_url=args.base_url)
-	resp_login = client.login(env('NEUMA_REST_USER'), env('NEUMA_REST_PASSWORD'))
+	#resp_login = client.login(env('NEUMA_REST_USER'), env('NEUMA_REST_PASSWORD'))
 
 	# Test the welcome message
 	res = client.request ("NeumaApi_v3")
@@ -57,8 +57,9 @@ def main(argv=None):
 		if ed.name == "describe_part":
 			print (f"\t\tValeur du parametre 'part' :  {ed.get_param('part')}")
 			
-	resp = iiif.post_editions([{"name": "describe_part", "params": {}}])
-	print (f"\t\tResult of post edition: {resp}")
+	#resp = iiif.post_editions([{"name": "describe_part", "params": {}}])
+	#print (f"\t\tResult of post edition: {resp}")
+	iiif_manifest = iiif.get_iiif_manifest()
 
 	"""
 	    Test with proxies
@@ -86,6 +87,7 @@ def main(argv=None):
 					print (f"\t\t\t\tSystem {j+1} : Nb staves: {manifest.nb_staves(i,j)}")
 					print (f"\t\t\t\tSystem {j+1} : Region: {manifest.system_region(i,j)}")
 					print (f"\t\t\t\tSystem {j+1} : Nb measures: {manifest.nb_measures(i,j)}")						
+
 	
 if __name__ == "__main__":
 	main()

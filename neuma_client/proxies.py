@@ -2,6 +2,8 @@
 	A set of classes that provide proxy to Neuma object 
 	through REST calls
 """
+from iiif_prezi.factory import ManifestFactory
+from iiif_prezi.loader import ManifestReader
 
 from neuma_client.exceptions import NotFoundException
 from neuma_client.client import NeumaClient, logger
@@ -26,6 +28,13 @@ class Collections:
 		except:
 			raise NotFoundException (f"Corpus not found : {corpus_ref}")
 			
+	def get_opus(self, opus_ref):
+		try:
+			res = self.client.request ("Element", full_neuma_ref=opus_ref)
+			return Opus (self.client, res)
+		except:
+			raise NotFoundException (f"Opus not found : {corpus_ref}")
+
 class Corpus:
 
 	def __init__(self, client, corpus_dict):		
@@ -113,6 +122,8 @@ class Source:
 		
 		self.manifest = None
 		self.manifest_in_cache = False
+		self.iiif_manifest = None
+		self.iiif_manifest_in_cache = False
 		self.editions = []
 		self.editions_in_cache = False
 		
@@ -139,6 +150,17 @@ class Source:
 											source_ref=self.ref)
 			self.manifest_in_cache = True
 		return Manifest(self.manifest)
+
+	def get_iiif_manifest(self):
+		if  self.iiif_manifest_in_cache == False:
+			self.iiif_manifest  = self.client.request ("SourceIIIFManifest", 
+											full_neuma_ref=self.opus.ref,
+											source_ref=self.ref)
+			self.iiif_manifest_in_cache = True
+			
+			return self.iiif_manifest
+		else:
+			return None
 
 	"""
 	  Editions

@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: neuma_client
-Version: 0.1.3
+Version: 0.3.0
 Summary: Python interface to the Neuma REST API
 Author-email: Philippe Rigaux <philippe.rigaux@cnam.fr>
 Project-URL: Homepage, https://github.com/collabscore/neuma-client
