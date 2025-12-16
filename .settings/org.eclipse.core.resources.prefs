@@ -1,6 +1,2 @@
 eclipse.preferences.version=1
-encoding//neuma_client/auth.py=utf-8
 encoding//neuma_client/client.py=utf-8
-encoding//neuma_client/exceptions.py=utf-8
-encoding//neuma_client/pagination.py=utf-8
-encoding/setup.py=utf-8
